@@ -80,7 +80,7 @@ export const avoidInProduction = asyncHandler(async (req, res, next) => {
   } else {
     throw new ApiError(
       403,
-      "This service is only available in the local environment. For more details visit: https://github.com/hiteshchoudhary/apihub/#readme"
+      "This service is only available in the local environment."
     );
   }
 });
