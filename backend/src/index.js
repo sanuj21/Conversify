@@ -14,20 +14,20 @@ const majorNodeVersion = +process.env.NODE_VERSION?.split(".")[0] || 0;
 
 const startServer = () => {
   httpServer.listen(process.env.PORT || 8080, () => {
-    console.info(
-      `📑 Visit the documentation at: http://localhost:${
-        process.env.PORT || 8080
-      }`
-    );
+    // console.info(
+    //   `📑 Visit the documentation at: http://localhost:${
+    //     process.env.PORT || 8080
+    //   }`
+    // );
     console.log("⚙️  Server is running on port: " + process.env.PORT);
   });
 };
 
 if (majorNodeVersion >= 14) {
   try {
-    console.log("Starting DB connection....")
+    console.log("Starting DB connection....");
     await connectDB();
-    console.log("DB connection successful....")
+    console.log("DB connection successful....");
     startServer();
   } catch (err) {
     console.log("Mongo db connect error: ", err);
