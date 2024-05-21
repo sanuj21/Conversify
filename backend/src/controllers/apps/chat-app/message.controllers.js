@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { ChatEventEnum } from "../../../constants.js";
 import { Chat } from "../../../models/apps/chat-app/chat.models.js";
 import { ChatMessage } from "../../../models/apps/chat-app/message.models.js";
-import { emitSocketEvent } from "../../../socket/index.js";
+import { emitSocketEvent, publishMessageRedis } from "../../../socket/index.js";
 import { ApiError } from "../../../utils/ApiError.js";
 import { ApiResponse } from "../../../utils/ApiResponse.js";
 import { asyncHandler } from "../../../utils/asyncHandler.js";
@@ -82,9 +82,6 @@ const sendMessage = asyncHandler(async (req, res) => {
   const { chatId } = req.params;
   const { content } = req.body;
 
-  console.log(req.files?.attachments?.length)
-  console.log(content);
-
   if (!content && !req.files?.attachments?.length) {
     throw new ApiError(400, "Message content or attachment is required");
   }
@@ -143,15 +140,22 @@ const sendMessage = asyncHandler(async (req, res) => {
   }
 
   // logic to emit socket event about the new message created to the other participants
-  chat.participants.forEach((participantObjectId) => {
+  chat.participants.forEach(async (participantObjectId) => {
     // here the chat is the raw instance of the chat in which participants is the array of object ids of users
     // avoid emitting event to the user who is sending the message
     if (participantObjectId.toString() === req.user._id.toString()) return;
 
     // emit the receive message event to the other participants with received message as the payload
-    emitSocketEvent(
-      req,
-      participantObjectId.toString(),
+    // await emitSocketEvent(
+    //   req,
+    //   participantObjectId.toString(),
+    //   ChatEventEnum.MESSAGE_RECEIVED_EVENT,
+    //   receivedMessage
+    // );
+
+    //  Publish the message event to Redis
+    await publishMessageRedis(
+      `chat:${participantObjectId.toString()}`,
       ChatEventEnum.MESSAGE_RECEIVED_EVENT,
       receivedMessage
     );
@@ -189,8 +193,8 @@ const deleteMessage = asyncHandler(async (req, res) => {
   // Check if user is the sender of the message
   if (message.sender.toString() !== req.user._id.toString()) {
     throw new ApiError(
-      401,
-      "You are not authorised to delete the message ,you are not the sender"
+      403,
+      "You are not the authorised to delete the message, you are not the sender"
     );
   }
   if (message.attachments.length > 0) {
@@ -221,21 +225,18 @@ const deleteMessage = asyncHandler(async (req, res) => {
     // here the chat is the raw instance of the chat in which participants is the array of object ids of users
     // avoid emitting event to the user who is deleting the message
     if (participantObjectId.toString() === req.user._id.toString()) return;
-
     // emit the delete message event to the other participants frontend with delete messageId as the payload
     emitSocketEvent(
       req,
       participantObjectId.toString(),
-      ChatEventEnum.MESSAGE_DELETED_EVENT,
-      message._id
+      ChatEventEnum.MESSAGE_DELETE_EVENT,
+      message
     );
   });
 
   return res
     .status(200)
-    .json(
-      new ApiResponse(200, { _id: message._id }, "Message deleted successfully")
-    );
+    .json(new ApiResponse(200, message, "Message deleted successfully"));
 });
 
 export { getAllMessages, sendMessage, deleteMessage };

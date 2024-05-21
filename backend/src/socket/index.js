@@ -1,9 +1,25 @@
 import cookie from "cookie";
 import jwt from "jsonwebtoken";
 import { Server, Socket } from "socket.io";
+import Redis from "ioredis";
 import { AvailableChatEvents, ChatEventEnum } from "../constants.js";
 import { User } from "../models/apps/auth/user.models.js";
 import { ApiError } from "../utils/ApiError.js";
+import { io } from "../app.js";
+
+const redisPub = new Redis({
+  host: "redis-5cbe33-anujs-first.e.aivencloud.com",
+  port: "18050",
+  username: "default",
+  password: "AVNS_x5ybxU2-lZav0lMJJk2",
+});
+
+const redisSub = new Redis({
+  host: "redis-5cbe33-anujs-first.e.aivencloud.com",
+  port: "18050",
+  username: "default",
+  password: "AVNS_x5ybxU2-lZav0lMJJk2",
+});
 
 /**
  * @description This function is responsible to allow user to join the chat represented by chatId (chatId). event happens when user switches between the chats
@@ -46,6 +62,8 @@ const mountParticipantStoppedTypingEvent = (socket) => {
 const initializeSocketIO = (io) => {
   return io.on("connection", async (socket) => {
     try {
+      // configuring redis
+
       // parse the cookies from the handshake headers (This is only possible if client has `withCredentials: true`)
       const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
 
@@ -108,8 +126,40 @@ const initializeSocketIO = (io) => {
  * @param {any} payload - Data that should be sent when emitting the event
  * @description Utility function responsible to abstract the logic of socket emission via the io instance
  */
-const emitSocketEvent = (req, roomId, event, payload) => {
-  req.app.get("io").in(roomId).emit(event, payload);
+const emitSocketEvent = async (req, roomId, event, payload) => {
+  // Uncomment this and comment the redis code , you will see the socket events are being emitted to the single server only
+  // console.log("Hi dude");
+  io.in(roomId).emit(event, payload);
 };
 
-export { initializeSocketIO, emitSocketEvent };
+// Function to publish the message event to Redis
+const publishMessageRedis = async (channel, event, payload) => {
+  if (channel.split(":")[0] != "chat") return;
+  await redisPub.publish(channel, JSON.stringify({ event, payload }));
+  const redisListKey = `${channel}:messages`;
+  // await redisPub.lpush(redisListKey, JSON.stringify(receivedMessage));
+  // await redisPub.ltrim(redisListKey, 0, 99);
+};
+
+redisSub.psubscribe("chat:*", (err, count) => {
+  if (err) {
+    console.error("Failed to subscribe: %s", err.message);
+  } else {
+    console.log(
+      `Subscribed successfully! This client is currently subscribed to ${count} channels.`
+    );
+  }
+});
+
+// subscribing to the message event redis
+redisSub.on("pmessage", (pattern, channel, message) => {
+  if (pattern != "chat:*") return;
+
+  const { payload, event } = JSON.parse(message);
+  const roomId = channel.split(":")[1];
+  console.log("Message received from Redis 📡. roomId: ", roomId);
+
+  io.in(roomId).emit(event, payload);
+});
+
+export { initializeSocketIO, emitSocketEvent, publishMessageRedis };

@@ -23,7 +23,8 @@ export const requestHandler = async (
     }
   } catch (error: any) {
     // Handle error cases, including unauthorized and forbidden cases
-    if ([401, 403].includes(error?.response.data?.statusCode)) {
+    console.log(error);
+    if ([401, 403].includes(error?.response?.data?.statusCode)) {
       localStorage.clear(); // Clear local storage on authentication issues
       if (isBrowser) window.location.href = "/login"; // Redirect to login page
     }
