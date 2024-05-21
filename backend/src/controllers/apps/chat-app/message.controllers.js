@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { ChatEventEnum } from "../../../constants.js";
 import { Chat } from "../../../models/apps/chat-app/chat.models.js";
 import { ChatMessage } from "../../../models/apps/chat-app/message.models.js";
-import { emitSocketEvent } from "../../../socket/index.js";
+import { emitSocketEvent, publishMessageRedis } from "../../../socket/index.js";
 import { ApiError } from "../../../utils/ApiError.js";
 import { ApiResponse } from "../../../utils/ApiResponse.js";
 import { asyncHandler } from "../../../utils/asyncHandler.js";
@@ -140,15 +140,22 @@ const sendMessage = asyncHandler(async (req, res) => {
   }
 
   // logic to emit socket event about the new message created to the other participants
-  chat.participants.forEach((participantObjectId) => {
+  chat.participants.forEach(async (participantObjectId) => {
     // here the chat is the raw instance of the chat in which participants is the array of object ids of users
     // avoid emitting event to the user who is sending the message
     if (participantObjectId.toString() === req.user._id.toString()) return;
 
     // emit the receive message event to the other participants with received message as the payload
-    emitSocketEvent(
-      req,
-      participantObjectId.toString(),
+    // await emitSocketEvent(
+    //   req,
+    //   participantObjectId.toString(),
+    //   ChatEventEnum.MESSAGE_RECEIVED_EVENT,
+    //   receivedMessage
+    // );
+
+    //  Publish the message event to Redis
+    await publishMessageRedis(
+      `chat:${participantObjectId.toString()}`,
       ChatEventEnum.MESSAGE_RECEIVED_EVENT,
       receivedMessage
     );

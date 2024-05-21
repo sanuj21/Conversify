@@ -23,10 +23,10 @@ const app = express();
 
 const httpServer = createServer(app);
 
-const io = new Server(httpServer, {
+export const io = new Server(httpServer, {
   pingTimeout: 60000,
   cors: {
-    origin:process.env.CORS_ORIGIN,
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   },
 });
@@ -89,15 +89,11 @@ app.use(morganMiddleware);
 import { errorHandler } from "./middlewares/error.middlewares.js";
 import healthcheckRouter from "./routes/healthcheck.routes.js";
 
-
-
 // * App routes
 import userRouter from "./routes/apps/auth/user.routes.js";
 
-
 import chatRouter from "./routes/apps/chat-app/chat.routes.js";
 import messageRouter from "./routes/apps/chat-app/message.routes.js";
-
 
 // * Kitchen sink routes
 import cookieRouter from "./routes/kitchen-sink/cookie.routes.js";
@@ -118,14 +114,11 @@ app.use("/api/v1/healthcheck", healthcheckRouter);
 
 // * Public apis
 
-
 // * App apis
 app.use("/api/v1/users", userRouter);
 
-
 app.use("/api/v1/chat-app/chats", chatRouter);
 app.use("/api/v1/chat-app/messages", messageRouter);
-
 
 // * Kitchen sink apis
 app.use("/api/v1/kitchen-sink/http-methods", httpmethodRouter);
