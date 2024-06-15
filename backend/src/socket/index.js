@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { Server, Socket } from "socket.io";
 import Redis from "ioredis";
 import { AvailableChatEvents, ChatEventEnum } from "../constants.js";
-import { User } from "../models/apps/auth/user.models.js";
+import { User } from "../models/user.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { io } from "../app.js";
 import { produceMessages } from "./kafka.js";

@@ -1,12 +1,11 @@
 import { Router } from "express";
-import passport from "passport";
-import { UserRolesEnum } from "../../../constants.js";
+import { UserRolesEnum } from "../constants.js";
 import {
   assignRole,
   changeCurrentPassword,
   forgotPasswordRequest,
   getCurrentUser,
-  handleSocialLogin,
+  // handleSocialLogin,
   loginUser,
   logoutUser,
   refreshAccessToken,
@@ -15,12 +14,11 @@ import {
   resetForgottenPassword,
   updateUserAvatar,
   verifyEmail,
-} from "../../../controllers/apps/auth/user.controllers.js";
+} from "../controllers/user.controllers.js";
 import {
   verifyJWT,
   verifyPermission,
-} from "../../../middlewares/auth.middlewares.js";
-import "../../../passport/index.js"; // import the passport config
+} from "../middlewares/auth.middlewares.js";
 import {
   userAssignRoleValidator,
   userChangeCurrentPasswordValidator,
@@ -28,10 +26,10 @@ import {
   userLoginValidator,
   userRegisterValidator,
   userResetForgottenPasswordValidator,
-} from "../../../validators/apps/auth/user.validators.js";
-import { validate } from "../../../validators/validate.js";
-import { upload } from "../../../middlewares/multer.middlewares.js";
-import { mongoIdPathVariableValidator } from "../../../validators/common/mongodb.validators.js";
+} from "../validators/user.validators.js";
+import { validate } from "../validators/validate.js";
+import { upload } from "../middlewares/multer.middlewares.js";
+import { mongoIdPathVariableValidator } from "../validators/common/mongodb.validators.js";
 
 const router = Router();
 
@@ -81,6 +79,7 @@ router
   );
 
 // SSO routes
+/*
 router.route("/google").get(
   passport.authenticate("google", {
     scope: ["profile", "email"],
@@ -90,21 +89,23 @@ router.route("/google").get(
   }
 );
 
-// router.route("/github").get(
-//   passport.authenticate("github", {
-//     scope: ["profile", "email"],
-//   }),
-//   (req, res) => {
-//     res.send("redirecting to github...");
-//   }
-// );
+router.route("/github").get(
+  passport.authenticate("github", {
+    scope: ["profile", "email"],
+  }),
+  (req, res) => {
+    res.send("redirecting to github...");
+  }
+);
 
 router
   .route("/google/callback")
   .get(passport.authenticate("google"), handleSocialLogin);
 
-// router
-//   .route("/github/callback")
-//   .get(passport.authenticate("github"), handleSocialLogin);
+router
+  .route("/github/callback")
+  .get(passport.authenticate("github"), handleSocialLogin);
+
+*/
 
 export default router;

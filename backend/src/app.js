@@ -90,15 +90,12 @@ import { errorHandler } from "./middlewares/error.middlewares.js";
 import healthcheckRouter from "./routes/healthcheck.routes.js";
 
 // * App routes
-import userRouter from "./routes/apps/auth/user.routes.js";
+import userRouter from "./routes/user.routes.js";
 
-import chatRouter from "./routes/apps/chat-app/chat.routes.js";
-import messageRouter from "./routes/apps/chat-app/message.routes.js";
+import chatRouter from "./routes/chat.routes.js";
+import messageRouter from "./routes/message.routes.js";
 
 // * Kitchen sink routes
-import cookieRouter from "./routes/kitchen-sink/cookie.routes.js";
-import httpmethodRouter from "./routes/kitchen-sink/httpmethod.routes.js";
-import imageRouter from "./routes/kitchen-sink/image.routes.js";
 import redirectRouter from "./routes/kitchen-sink/redirect.routes.js";
 import requestinspectionRouter from "./routes/kitchen-sink/requestinspection.routes.js";
 import responseinspectionRouter from "./routes/kitchen-sink/responseinspection.routes.js";
@@ -121,13 +118,10 @@ app.use("/api/v1/chat-app/chats", chatRouter);
 app.use("/api/v1/chat-app/messages", messageRouter);
 
 // * Kitchen sink apis
-app.use("/api/v1/kitchen-sink/http-methods", httpmethodRouter);
 app.use("/api/v1/kitchen-sink/status-codes", statuscodeRouter);
 app.use("/api/v1/kitchen-sink/request", requestinspectionRouter);
 app.use("/api/v1/kitchen-sink/response", responseinspectionRouter);
-app.use("/api/v1/kitchen-sink/cookies", cookieRouter);
 app.use("/api/v1/kitchen-sink/redirect", redirectRouter);
-app.use("/api/v1/kitchen-sink/image", imageRouter);
 
 // * Seeding
 app.get(
