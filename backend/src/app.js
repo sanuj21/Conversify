@@ -2,22 +2,17 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
-import session from "express-session";
 import fs from "fs";
 import { createServer } from "http";
-import passport from "passport";
 import path from "path";
 import requestIp from "request-ip";
 import { Server } from "socket.io";
-import { fileURLToPath } from "url";
 import { DB_NAME } from "./constants.js";
 import { dbInstance } from "./db/index.js";
 import morganMiddleware from "./logger/morgan.logger.js";
 import { initializeSocketIO } from "./socket/index.js";
 import { ApiError } from "./utils/ApiError.js";
 import { ApiResponse } from "./utils/ApiResponse.js";
-
-const __filename = fileURLToPath(import.meta.url);
 
 const app = express();
 
@@ -73,17 +68,6 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public")); // configure static file to save images locally
 app.use(cookieParser());
 
-// required for passport
-app.use(
-  session({
-    secret: process.env.EXPRESS_SESSION_SECRET,
-    resave: true,
-    saveUninitialized: true,
-  })
-); // session secret
-app.use(passport.initialize());
-app.use(passport.session()); // persistent login sessions
-
 app.use(morganMiddleware);
 // api routes
 import { errorHandler } from "./middlewares/error.middlewares.js";
@@ -95,16 +79,8 @@ import userRouter from "./routes/user.routes.js";
 import chatRouter from "./routes/chat.routes.js";
 import messageRouter from "./routes/message.routes.js";
 
-// * Kitchen sink routes
-import redirectRouter from "./routes/kitchen-sink/redirect.routes.js";
-import requestinspectionRouter from "./routes/kitchen-sink/requestinspection.routes.js";
-import responseinspectionRouter from "./routes/kitchen-sink/responseinspection.routes.js";
-import statuscodeRouter from "./routes/kitchen-sink/statuscode.routes.js";
-
 // * Seeding handlers
 import { avoidInProduction } from "./middlewares/auth.middlewares.js";
-import { seedChatApp } from "./seeds/chat-app.seeds.js";
-import { getGeneratedCredentials, seedUsers } from "./seeds/user.seeds.js";
 
 // * healthcheck
 app.use("/api/v1/healthcheck", healthcheckRouter);
@@ -116,21 +92,6 @@ app.use("/api/v1/users", userRouter);
 
 app.use("/api/v1/chat-app/chats", chatRouter);
 app.use("/api/v1/chat-app/messages", messageRouter);
-
-// * Kitchen sink apis
-app.use("/api/v1/kitchen-sink/status-codes", statuscodeRouter);
-app.use("/api/v1/kitchen-sink/request", requestinspectionRouter);
-app.use("/api/v1/kitchen-sink/response", responseinspectionRouter);
-app.use("/api/v1/kitchen-sink/redirect", redirectRouter);
-
-// * Seeding
-app.get(
-  "/api/v1/seed/generated-credentials",
-  avoidInProduction,
-  getGeneratedCredentials
-);
-
-app.post("/api/v1/seed/chat-app", avoidInProduction, seedUsers, seedChatApp);
 
 initializeSocketIO(io);
 
@@ -169,19 +130,6 @@ app.delete("/api/v1/reset-db", avoidInProduction, async (req, res) => {
   }
   throw new ApiError(500, "Something went wrong while dropping the database");
 });
-
-// * API DOCS
-// ? Keeping swagger code at the end so that we can load swagger on "/" route
-// app.use(
-//   "/",
-//   swaggerUi.serve,
-//   swaggerUi.setup(swaggerDocument, {
-//     swaggerOptions: {
-//       docExpansion: "none", // keep all the sections collapsed by default
-//     },
-//     customSiteTitle: "FreeAPI docs",
-//   })
-// );
 
 // common error handling middleware
 app.use(errorHandler);

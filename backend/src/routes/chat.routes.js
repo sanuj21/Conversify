@@ -17,7 +17,7 @@ import {
   createAGroupChatValidator,
   updateGroupChatNameValidator,
 } from "../validators/chat.validators.js";
-import { mongoIdPathVariableValidator } from "../validators/common/mongodb.validators.js";
+import { mongoIdPathVariableValidator } from "../validators/mongodb.validators.js";
 import { validate } from "../validators/validate.js";
 
 const router = Router();

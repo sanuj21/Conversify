@@ -29,7 +29,7 @@ import {
 } from "../validators/user.validators.js";
 import { validate } from "../validators/validate.js";
 import { upload } from "../middlewares/multer.middlewares.js";
-import { mongoIdPathVariableValidator } from "../validators/common/mongodb.validators.js";
+import { mongoIdPathVariableValidator } from "../validators/mongodb.validators.js";
 
 const router = Router();
 
