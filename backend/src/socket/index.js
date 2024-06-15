@@ -6,20 +6,25 @@ import { AvailableChatEvents, ChatEventEnum } from "../constants.js";
 import { User } from "../models/apps/auth/user.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { io } from "../app.js";
+import { produceMessages } from "./kafka.js";
 
-const redisPub = new Redis({
-  host: "redis-5cbe33-anujs-first.e.aivencloud.com",
-  port: "18050",
-  username: "default",
-  password: "AVNS_x5ybxU2-lZav0lMJJk2",
-});
+// const redisPub = new Redis({
+//   host: process.env.REDIS_HOST,
+//   port: "18051",
+//   username: "default",
+//   password: "AVNS_x5ybxU2-lZav0lMJJk2",
+// });
 
-const redisSub = new Redis({
-  host: "redis-5cbe33-anujs-first.e.aivencloud.com",
-  port: "18050",
-  username: "default",
-  password: "AVNS_x5ybxU2-lZav0lMJJk2",
-});
+const redisPub = new Redis(process.env.REDIS_URI);
+
+const redisSub = new Redis(process.env.REDIS_URI);
+
+// const redisSub = new Redis({
+//   host: process.env.REDIS_HOST,
+//   port: "18051",
+//   username: "default",
+//   password: "AVNS_x5ybxU2-lZav0lMJJk2",
+// });
 
 /**
  * @description This function is responsible to allow user to join the chat represented by chatId (chatId). event happens when user switches between the chats
@@ -62,8 +67,6 @@ const mountParticipantStoppedTypingEvent = (socket) => {
 const initializeSocketIO = (io) => {
   return io.on("connection", async (socket) => {
     try {
-      // configuring redis
-
       // parse the cookies from the handshake headers (This is only possible if client has `withCredentials: true`)
       const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
 
@@ -127,8 +130,8 @@ const initializeSocketIO = (io) => {
  * @description Utility function responsible to abstract the logic of socket emission via the io instance
  */
 const emitSocketEvent = async (req, roomId, event, payload) => {
-  // Uncomment this and comment the redis code , you will see the socket events are being emitted to the single server only
-  // console.log("Hi dude");
+  // Uncomment the code below and comment the publishMessageRedis call code , you will see the socket events are being emitted to the single server only
+  // console.log("Received Msg from Socket");
   io.in(roomId).emit(event, payload);
 };
 
@@ -152,14 +155,17 @@ redisSub.psubscribe("chat:*", (err, count) => {
 });
 
 // subscribing to the message event redis
-redisSub.on("pmessage", (pattern, channel, message) => {
+redisSub.on("pmessage", async (pattern, channel, message) => {
   if (pattern != "chat:*") return;
 
   const { payload, event } = JSON.parse(message);
   const roomId = channel.split(":")[1];
-  console.log("Message received from Redis 📡. roomId: ", roomId);
+  console.log("New Message received from Redis 📡. roomId: ", roomId);
 
   io.in(roomId).emit(event, payload);
+
+  await produceMessages(message);
+  console.log("Message published to Kafka 🚀");
 });
 
 export { initializeSocketIO, emitSocketEvent, publishMessageRedis };
