@@ -31,10 +31,7 @@ app.set("io", io); // using set method to mount the `io` instance on the app to 
 // global middlewares
 app.use(
   cors({
-    origin:
-      process.env.CORS_ORIGIN === process.env.CORS_ORIGIN
-        ? process.env.CORS_ORIGIN // This might give CORS error for some origins due to credentials set to true
-        : process.env.CORS_ORIGIN?.split(","), // For multiple cors origin for production.
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   })
 );
@@ -79,7 +76,6 @@ import userRouter from "./routes/user.routes.js";
 import chatRouter from "./routes/chat.routes.js";
 import messageRouter from "./routes/message.routes.js";
 
-// * Seeding handlers
 import { avoidInProduction } from "./middlewares/auth.middlewares.js";
 
 // * healthcheck
