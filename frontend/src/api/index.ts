@@ -19,6 +19,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   function (error) {
+    console.log(error);
     return Promise.reject(error);
   }
 );
@@ -26,6 +27,10 @@ apiClient.interceptors.request.use(
 // API functions for different actions
 const loginUser = (data: { username: string; password: string }) => {
   return apiClient.post("/users/login", data);
+};
+
+const refreshLoginToken = () => {
+  return apiClient.post("/users/refresh-token");
 };
 
 const registerUser = (data: {
@@ -117,4 +122,5 @@ export {
   sendMessage,
   updateGroupName,
   deleteMessage,
+  refreshLoginToken,
 };

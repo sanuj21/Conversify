@@ -2,22 +2,17 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
-import session from "express-session";
 import fs from "fs";
 import { createServer } from "http";
-import passport from "passport";
 import path from "path";
 import requestIp from "request-ip";
 import { Server } from "socket.io";
-import { fileURLToPath } from "url";
 import { DB_NAME } from "./constants.js";
 import { dbInstance } from "./db/index.js";
 import morganMiddleware from "./logger/morgan.logger.js";
 import { initializeSocketIO } from "./socket/index.js";
 import { ApiError } from "./utils/ApiError.js";
 import { ApiResponse } from "./utils/ApiResponse.js";
-
-const __filename = fileURLToPath(import.meta.url);
 
 const app = express();
 
@@ -36,10 +31,7 @@ app.set("io", io); // using set method to mount the `io` instance on the app to 
 // global middlewares
 app.use(
   cors({
-    origin:
-      process.env.CORS_ORIGIN === process.env.CORS_ORIGIN
-        ? process.env.CORS_ORIGIN // This might give CORS error for some origins due to credentials set to true
-        : process.env.CORS_ORIGIN?.split(","), // For multiple cors origin for production.
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   })
 );
@@ -73,41 +65,18 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public")); // configure static file to save images locally
 app.use(cookieParser());
 
-// required for passport
-app.use(
-  session({
-    secret: process.env.EXPRESS_SESSION_SECRET,
-    resave: true,
-    saveUninitialized: true,
-  })
-); // session secret
-app.use(passport.initialize());
-app.use(passport.session()); // persistent login sessions
-
 app.use(morganMiddleware);
 // api routes
 import { errorHandler } from "./middlewares/error.middlewares.js";
 import healthcheckRouter from "./routes/healthcheck.routes.js";
 
 // * App routes
-import userRouter from "./routes/apps/auth/user.routes.js";
+import userRouter from "./routes/user.routes.js";
 
-import chatRouter from "./routes/apps/chat-app/chat.routes.js";
-import messageRouter from "./routes/apps/chat-app/message.routes.js";
+import chatRouter from "./routes/chat.routes.js";
+import messageRouter from "./routes/message.routes.js";
 
-// * Kitchen sink routes
-import cookieRouter from "./routes/kitchen-sink/cookie.routes.js";
-import httpmethodRouter from "./routes/kitchen-sink/httpmethod.routes.js";
-import imageRouter from "./routes/kitchen-sink/image.routes.js";
-import redirectRouter from "./routes/kitchen-sink/redirect.routes.js";
-import requestinspectionRouter from "./routes/kitchen-sink/requestinspection.routes.js";
-import responseinspectionRouter from "./routes/kitchen-sink/responseinspection.routes.js";
-import statuscodeRouter from "./routes/kitchen-sink/statuscode.routes.js";
-
-// * Seeding handlers
 import { avoidInProduction } from "./middlewares/auth.middlewares.js";
-import { seedChatApp } from "./seeds/chat-app.seeds.js";
-import { getGeneratedCredentials, seedUsers } from "./seeds/user.seeds.js";
 
 // * healthcheck
 app.use("/api/v1/healthcheck", healthcheckRouter);
@@ -119,24 +88,6 @@ app.use("/api/v1/users", userRouter);
 
 app.use("/api/v1/chat-app/chats", chatRouter);
 app.use("/api/v1/chat-app/messages", messageRouter);
-
-// * Kitchen sink apis
-app.use("/api/v1/kitchen-sink/http-methods", httpmethodRouter);
-app.use("/api/v1/kitchen-sink/status-codes", statuscodeRouter);
-app.use("/api/v1/kitchen-sink/request", requestinspectionRouter);
-app.use("/api/v1/kitchen-sink/response", responseinspectionRouter);
-app.use("/api/v1/kitchen-sink/cookies", cookieRouter);
-app.use("/api/v1/kitchen-sink/redirect", redirectRouter);
-app.use("/api/v1/kitchen-sink/image", imageRouter);
-
-// * Seeding
-app.get(
-  "/api/v1/seed/generated-credentials",
-  avoidInProduction,
-  getGeneratedCredentials
-);
-
-app.post("/api/v1/seed/chat-app", avoidInProduction, seedUsers, seedChatApp);
 
 initializeSocketIO(io);
 
@@ -175,19 +126,6 @@ app.delete("/api/v1/reset-db", avoidInProduction, async (req, res) => {
   }
   throw new ApiError(500, "Something went wrong while dropping the database");
 });
-
-// * API DOCS
-// ? Keeping swagger code at the end so that we can load swagger on "/" route
-// app.use(
-//   "/",
-//   swaggerUi.serve,
-//   swaggerUi.setup(swaggerDocument, {
-//     swaggerOptions: {
-//       docExpansion: "none", // keep all the sections collapsed by default
-//     },
-//     customSiteTitle: "FreeAPI docs",
-//   })
-// );
 
 // common error handling middleware
 app.use(errorHandler);
