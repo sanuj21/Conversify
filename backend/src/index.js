@@ -23,6 +23,12 @@ const startServer = () => {
   });
 };
 
+// Shutting down Kafka producer
+process.on("SIGINT", async () => {
+  await shutdownProducer();
+  process.exit(0);
+});
+
 if (majorNodeVersion >= 14) {
   try {
     console.log("Starting DB connection....");

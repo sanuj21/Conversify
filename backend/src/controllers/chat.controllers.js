@@ -462,6 +462,10 @@ const leaveGroupChat = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Group chat does not exist");
   }
 
+  if (groupChat.admin?.toString() == req.user._id?.toString()) {
+    throw new ApiError(404, "Admin cannot left the group");
+  }
+
   const existingParticipants = groupChat.participants;
 
   // check if the participant that is leaving the group, is part of the group
@@ -568,6 +572,10 @@ const removeParticipantFromGroupChat = asyncHandler(async (req, res) => {
 
   if (!groupChat) {
     throw new ApiError(404, "Group chat does not exist");
+  }
+
+  if (groupChat.admin?.toString() == req.user._id?.toString()) {
+    throw new ApiError(404, "Admin cannot be removed from the group");
   }
 
   // check if user who is deleting is a group admin

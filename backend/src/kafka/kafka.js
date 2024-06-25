@@ -15,12 +15,12 @@ const kafka = new Kafka({
   },
 });
 
-// let producer = null;
+let producer = null;
 
 const createProducer = async () => {
-  // if (producer) return producer;
+  if (producer) return producer;
 
-  const producer = kafka.producer();
+  producer = kafka.producer();
   await producer.connect();
   return producer;
 };
@@ -31,7 +31,6 @@ const produceMessages = async (message) => {
     topic: "MESSAGES",
     messages: [{ key: `message-${Date.now()}`, value: message }],
   });
-  await producer.disconnect();
 };
 
 const consumeMessages = async () => {
@@ -45,9 +44,15 @@ const consumeMessages = async () => {
       try {
         // Store the message in the database
 
-        const { _id, sender, content, chat, attachments } = JSON.parse(
-          message.value.toString()
-        ).payload;
+        const {
+          _id,
+          sender,
+          content,
+          chat,
+          attachments,
+          updatedAt,
+          createdAt,
+        } = JSON.parse(message.value.toString()).payload;
 
         if ((!_id, !sender || !content || !chat || !attachments)) {
           throw new Error("Invalid message");
@@ -60,6 +65,8 @@ const consumeMessages = async () => {
           content,
           chat,
           attachments,
+          updatedAt,
+          createdAt,
         });
 
         await Chat.findByIdAndUpdate(
@@ -86,4 +93,10 @@ const consumeMessages = async () => {
   });
 };
 
-export { produceMessages, consumeMessages };
+const shutdownProducer = async () => {
+  if (producer) {
+    await producer.disconnect();
+  }
+};
+
+export { produceMessages, consumeMessages, shutdownProducer };

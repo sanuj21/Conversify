@@ -6,7 +6,7 @@ import { AvailableChatEvents, ChatEventEnum } from "../constants.js";
 import { User } from "../models/user.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { io } from "../app.js";
-import { consumeMessages, produceMessages } from "./kafka.js";
+import { consumeMessages, produceMessages } from "../kafka/kafka.js";
 
 // const redisPub = new Redis({
 //   host: process.env.REDIS_HOST,

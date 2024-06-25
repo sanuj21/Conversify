@@ -19,6 +19,8 @@ const MessageItem: React.FC<{
   const [resizedImage, setResizedImage] = useState<string | null>(null);
   const [openOptions, setopenOptions] = useState<boolean>(false); //To open delete menu option on hover
 
+  const imgFileTypes = ["png", "jpg", "jpeg", "gif", "webp"];
+
   return (
     <>
       {resizedImage ? (
@@ -51,7 +53,7 @@ const MessageItem: React.FC<{
         <div
           onMouseLeave={() => setopenOptions(false)}
           className={classNames(
-            " p-4 rounded-3xl flex flex-col cursor-pointer group hover:bg-secondary",
+            " p-4 rounded-2xl flex flex-col cursor-pointer group hover:bg-secondary",
             isOwnMessage
               ? "order-1 rounded-br-none bg-primary"
               : "order-2 rounded-bl-none bg-secondary"
@@ -77,7 +79,7 @@ const MessageItem: React.FC<{
                   className="self-center p-1 relative options-button"
                   onClick={() => setopenOptions(!openOptions)}
                 >
-                  <EllipsisVerticalIcon className="group-hover:w-6 group-hover:opacity-100 w-0 opacity-0 transition-all ease-in-out duration-100 text-zinc-300" />
+                  {/* <EllipsisVerticalIcon className="group-hover:w-6 group-hover:opacity-100 w-0 opacity-0 transition-all ease-in-out duration-100 text-zinc-300" /> */}
                   <div
                     className={classNames(
                       "z-30 text-left absolute botom-0 translate-y-1 text-[10px] w-auto bg-dark rounded-2xl p-2 shadow-md border-[1px] border-secondary",
@@ -104,26 +106,23 @@ const MessageItem: React.FC<{
                 </button>
               ) : null}
 
-              <div
-                className={classNames(
-                  "grid max-w-7xl gap-2",
-                  message.attachments?.length === 1 ? " grid-cols-1" : "",
-                  message.attachments?.length === 2 ? " grid-cols-2" : "",
-                  message.attachments?.length >= 3 ? " grid-cols-3" : "",
-                  message.content ? "mb-6" : ""
-                )}
-              >
+              <div className={classNames(message.content ? "mb-6" : "")}>
                 {message.attachments?.map((file) => {
+                  const fileType =
+                    file.url.split(".")[file.url.split(".").length - 1];
+
                   return (
                     <div
                       key={file._id}
-                      className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer"
+                      className="group rounded-md relative aspect-square overflow-hidden cursor-pointer"
                     >
                       <button
                         onClick={() => setResizedImage(file.url)}
                         className="absolute inset-0 z-20 flex justify-center items-center w-full gap-2 h-full bg-black/60 group-hover:opacity-100 opacity-0 transition-opacity ease-in-out duration-150"
                       >
-                        <MagnifyingGlassPlusIcon className="h-6 w-6 text-white" />
+                        {imgFileTypes.includes(fileType) ? (
+                          <MagnifyingGlassPlusIcon className="h-6 w-6 text-white" />
+                        ) : null}
                         <a
                           href={file.url}
                           download
@@ -135,11 +134,22 @@ const MessageItem: React.FC<{
                           />
                         </a>
                       </button>
-                      <img
-                        className="h-full w-full object-cover"
-                        src={file.url}
-                        alt="msg_img"
-                      />
+                      {
+                        // Show image preview if the file type is image
+                        imgFileTypes.includes(fileType) ? (
+                          <img
+                            className="h-full w-full object-cover"
+                            src={file.url}
+                            alt="msg_img"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex justify-center items-center bg-primaryDark">
+                            <p className="text-white text-xs">
+                              {fileType.toUpperCase()} File
+                            </p>
+                          </div>
+                        )
+                      }
                     </div>
                   );
                 })}
@@ -154,7 +164,7 @@ const MessageItem: React.FC<{
                   className="self-center relative options-button"
                   onClick={() => setopenOptions(!openOptions)}
                 >
-                  <EllipsisVerticalIcon className="group-hover:w-4 group-hover:opacity-100 w-0 opacity-0 transition-all ease-in-out duration-100 text-zinc-300" />
+                  {/* <EllipsisVerticalIcon className="group-hover:w-4 group-hover:opacity-100 w-0 opacity-0 transition-all ease-in-out duration-100 text-zinc-300" /> */}
                   <div
                     className={classNames(
                       "delete-menu z-20 text-left -translate-x-24 -translate-y-4 absolute botom-0  text-[10px] w-auto bg-dark rounded-2xl  shadow-md border-[1px] border-secondary",

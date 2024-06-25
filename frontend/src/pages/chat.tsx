@@ -422,6 +422,8 @@ const ChatPage = () => {
     // updating on each `useEffect` call but on each socket call.
   }, [socket, chats]);
 
+  const imgFileTypes = ["png", "jpg", "jpeg", "gif", "webp"];
+
   return (
     <>
       <AddChatModal
@@ -446,7 +448,7 @@ const ChatPage = () => {
             />
             <button
               onClick={() => setOpenAddChat(true)}
-              className="rounded-xl border-none bg-primary text-white py-4 px-5 flex flex-shrink-0"
+              className="rounded-md border-none bg-primary text-white py-4 px-5 flex flex-shrink-0"
             >
               + Add chat
             </button>
@@ -584,6 +586,10 @@ const ChatPage = () => {
               {attachedFiles.length > 0 ? (
                 <div className="grid gap-4 grid-cols-5 p-4 justify-start max-w-fit">
                   {attachedFiles.map((file, i) => {
+                    console.log(file);
+                    const fileType =
+                      file.name.split(".")[file.name.split(".").length - 1];
+                    console.log(fileType);
                     return (
                       <div
                         key={i}
@@ -601,11 +607,20 @@ const ChatPage = () => {
                             <XCircleIcon className="h-6 w-6 text-white" />
                           </button>
                         </div>
-                        <img
-                          className="h-full rounded-xl w-full object-cover"
-                          src={URL.createObjectURL(file)}
-                          alt="attachment"
-                        />
+
+                        {imgFileTypes.includes(fileType) ? (
+                          <img
+                            className="h-full rounded-xl w-full object-cover"
+                            src={URL.createObjectURL(file)}
+                            alt="attachment"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex justify-center items-center bg-slate-100 text-center">
+                            <p className="text-black text-md p-2">
+                              {file.name}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -617,8 +632,6 @@ const ChatPage = () => {
                   id="attachments"
                   type="file"
                   value=""
-                  multiple
-                  max={5}
                   onChange={(e) => {
                     if (e.target.files) {
                       setAttachedFiles([...e.target.files]);
