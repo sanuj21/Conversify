@@ -36,12 +36,14 @@ export const requestHandler = async (
           if (isBrowser) window.location.href = "/login"; // Redirect to login page
         }
       } catch (err: any) {
-        // console.log(err);
+        console.log("Error refreshing token", err);
+        localStorage.clear(); // Clear local storage on authentication issues
+        if (isBrowser) window.location.href = "/login"; // Redirect to login page
         onError(err?.response?.data?.message || "Something went wrong");
         return;
       }
     } else {
-      // console.log(error);
+      console.log("Error in request handler", error);
       onError(error?.response?.data?.message || "Something went wrong");
     }
   } finally {

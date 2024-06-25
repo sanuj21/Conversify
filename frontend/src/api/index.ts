@@ -89,11 +89,28 @@ const getChatMessages = (chatId: string) => {
   return apiClient.get(`/chat-app/messages/${chatId}`);
 };
 
-const sendMessage = (chatId: string, content: string, attachments: File[]) => {
+const sendMessage = (
+  chatId: string,
+  participants: string[],
+  content: string,
+  attachments: File[],
+  basicUserInfo: {
+    username: string | undefined;
+    avatarURL: string | undefined;
+  }
+) => {
   const formData = new FormData();
   if (content) {
     formData.append("content", content);
   }
+
+  participants?.map((participant) => {
+    formData.append("participants", participant);
+  });
+
+  formData.append("senderUsername", basicUserInfo.username || "");
+  formData.append("senderAvatarURL", basicUserInfo.avatarURL || "");
+
   attachments?.map((file) => {
     formData.append("attachments", file);
   });

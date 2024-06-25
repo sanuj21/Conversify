@@ -6,7 +6,7 @@ import { AvailableChatEvents, ChatEventEnum } from "../constants.js";
 import { User } from "../models/user.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { io } from "../app.js";
-import { produceMessages } from "./kafka.js";
+import { consumeMessages, produceMessages } from "./kafka.js";
 
 // const redisPub = new Redis({
 //   host: process.env.REDIS_HOST,
@@ -65,6 +65,8 @@ const mountParticipantStoppedTypingEvent = (socket) => {
  * @param {Server<import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, any>} io
  */
 const initializeSocketIO = (io) => {
+  consumeMessages();
+
   return io.on("connection", async (socket) => {
     try {
       // parse the cookies from the handshake headers (This is only possible if client has `withCredentials: true`)
@@ -107,7 +109,7 @@ const initializeSocketIO = (io) => {
       mountParticipantStoppedTypingEvent(socket);
 
       socket.on(ChatEventEnum.DISCONNECT_EVENT, () => {
-        console.log("user has disconnected 🚫. userId: " + socket.user?._id);
+        console.log("User has disconnected 🚫. userId: " + socket.user?._id);
         if (socket.user?._id) {
           socket.leave(socket.user._id);
         }

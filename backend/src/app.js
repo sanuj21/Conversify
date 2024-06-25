@@ -9,7 +9,7 @@ import requestIp from "request-ip";
 import { Server } from "socket.io";
 import { DB_NAME } from "./constants.js";
 import { dbInstance } from "./db/index.js";
-import morganMiddleware from "./logger/morgan.logger.js";
+// import morganMiddleware from "./logger/morgan.logger.js";
 import { initializeSocketIO } from "./socket/index.js";
 import { ApiError } from "./utils/ApiError.js";
 import { ApiResponse } from "./utils/ApiResponse.js";
@@ -65,7 +65,7 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public")); // configure static file to save images locally
 app.use(cookieParser());
 
-app.use(morganMiddleware);
+// app.use(morganMiddleware);
 // api routes
 import { errorHandler } from "./middlewares/error.middlewares.js";
 import healthcheckRouter from "./routes/healthcheck.routes.js";

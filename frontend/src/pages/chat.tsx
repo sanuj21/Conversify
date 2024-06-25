@@ -173,14 +173,25 @@ const ChatPage = () => {
     // Emit a STOP_TYPING_EVENT to inform other users/participants that typing has stopped
     socket.emit(STOP_TYPING_EVENT, currentChat.current?._id);
 
+    const participantsID = currentChat.current?.participants.map(
+      (participant) => participant._id
+    );
+
+    const basicUserInfo = {
+      username: user?.username,
+      avatarURL: user?.avatar?.url,
+    };
+
     // Use the requestHandler to send the message and handle potential response or error
     await requestHandler(
       // Try to send the chat message with the given message and attached files
       async () =>
         await sendMessage(
-          currentChat.current?._id || "", // Chat ID or empty string if not available
+          currentChat.current?._id || "",
+          participantsID,
           message, // Actual text message
-          attachedFiles // Any attached files
+          attachedFiles, // Any attached files
+          basicUserInfo
         ),
       null,
       // On successful message sending, clear the message input and attached files, then update the UI
