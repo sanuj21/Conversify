@@ -53,7 +53,7 @@ const MessageItem: React.FC<{
         <div
           onMouseLeave={() => setopenOptions(false)}
           className={classNames(
-            " p-4 rounded-2xl flex flex-col cursor-pointer group hover:bg-secondary",
+            " p-4 rounded-2xl flex flex-col cursor-pointer group",
             isOwnMessage
               ? "order-1 rounded-br-none bg-primary"
               : "order-2 rounded-bl-none bg-secondary"
@@ -143,7 +143,11 @@ const MessageItem: React.FC<{
                             alt="msg_img"
                           />
                         ) : (
-                          <div className="h-full w-full flex justify-center items-center bg-primaryDark">
+                          <div
+                            className={`h-full w-full flex justify-center items-center ${
+                              isOwnMessage ? "bg-primaryDark" : "bg-dark"
+                            }`}
+                          >
                             <p className="text-white text-xs">
                               {fileType.toUpperCase()} File
                             </p>

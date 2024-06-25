@@ -10,11 +10,6 @@ import {
   getStaticFilePath,
   removeLocalFile,
 } from "../utils/helpers.js";
-import {
-  emailVerificationMailgenContent,
-  forgotPasswordMailgenContent,
-  sendEmail,
-} from "../utils/mail.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -70,17 +65,6 @@ const registerUser = asyncHandler(async (req, res) => {
   user.emailVerificationExpiry = tokenExpiry;
   await user.save({ validateBeforeSave: false });
 
-  await sendEmail({
-    email: user?.email,
-    subject: "Please verify your email",
-    mailgenContent: emailVerificationMailgenContent(
-      user.username,
-      `${req.protocol}://${req.get(
-        "host"
-      )}/api/v1/users/verify-email/${unHashedToken}`
-    ),
-  });
-
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
   );
@@ -95,7 +79,7 @@ const registerUser = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { user: createdUser },
-        "Users registered successfully and verification email has been sent on your email."
+        "Users registered successfully."
       )
     );
 });

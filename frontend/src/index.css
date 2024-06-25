@@ -29,6 +29,26 @@
   }
 }
 
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #219C90; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #038278; 
+}
+
 .animation1 {
   animation: bounce 0.4s ease-in-out infinite alternate;
   animation-delay: -0.4s;
