@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { httpServer } from "./app.js";
 import connectDB from "./db/index.js";
+import { shutdownProducer } from "./kafka/kafka.js";
 
 dotenv.config({
   path: "./.env",
@@ -22,6 +23,12 @@ const startServer = () => {
     console.log("⚙️  Server is running on port: " + process.env.PORT);
   });
 };
+
+// Shutting down Kafka producer
+process.on("SIGINT", async () => {
+  await shutdownProducer();
+  process.exit(0);
+});
 
 if (majorNodeVersion >= 14) {
   try {

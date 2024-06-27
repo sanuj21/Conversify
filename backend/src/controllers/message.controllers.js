@@ -1,16 +1,16 @@
 import mongoose from "mongoose";
-import { ChatEventEnum } from "../../../constants.js";
-import { Chat } from "../../../models/apps/chat-app/chat.models.js";
-import { ChatMessage } from "../../../models/apps/chat-app/message.models.js";
-import { emitSocketEvent, publishMessageRedis } from "../../../socket/index.js";
-import { ApiError } from "../../../utils/ApiError.js";
-import { ApiResponse } from "../../../utils/ApiResponse.js";
-import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { ChatEventEnum } from "../constants.js";
+import { Chat } from "../models/chat.models.js";
+import { ChatMessage } from "../models/message.models.js";
+import { emitSocketEvent, publishMessageRedis } from "../socket/index.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   getLocalPath,
   getStaticFilePath,
   removeLocalFile,
-} from "../../../utils/helpers.js";
+} from "../utils/helpers.js";
 
 /**
  * @description Utility function which returns the pipeline stages to structure the chat message schema with common lookups
@@ -81,6 +81,9 @@ const getAllMessages = asyncHandler(async (req, res) => {
 const sendMessage = asyncHandler(async (req, res) => {
   const { chatId } = req.params;
   const { content } = req.body;
+  const { participants } = req.body;
+  const { senderUsername } = req.body;
+  const { senderAvatarURL } = req.body;
 
   if (!content && !req.files?.attachments?.length) {
     throw new ApiError(400, "Message content or attachment is required");
@@ -103,6 +106,24 @@ const sendMessage = asyncHandler(async (req, res) => {
     });
   }
 
+  const receivedMsgTemp = {
+    _id: new mongoose.Types.ObjectId(),
+    sender: {
+      _id: req.user._id,
+      username: senderUsername,
+      avatar: {
+        url: senderAvatarURL,
+      },
+    },
+    content: content || "",
+    participants: participants,
+    chat: chatId,
+    attachments: messageFiles,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+  };
+
+  /*
   // Create a new message instance with appropriate metadata
   const message = await ChatMessage.create({
     sender: new mongoose.Types.ObjectId(req.user._id),
@@ -139,8 +160,10 @@ const sendMessage = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Internal server error");
   }
 
+  */
+
   // logic to emit socket event about the new message created to the other participants
-  chat.participants.forEach(async (participantObjectId) => {
+  participants.forEach(async (participantObjectId) => {
     // here the chat is the raw instance of the chat in which participants is the array of object ids of users
     // avoid emitting event to the user who is sending the message
     if (participantObjectId.toString() === req.user._id.toString()) return;
@@ -157,13 +180,13 @@ const sendMessage = asyncHandler(async (req, res) => {
     await publishMessageRedis(
       `chat:${participantObjectId.toString()}`,
       ChatEventEnum.MESSAGE_RECEIVED_EVENT,
-      receivedMessage
+      receivedMsgTemp
     );
   });
 
   return res
     .status(201)
-    .json(new ApiResponse(201, receivedMessage, "Message saved successfully"));
+    .json(new ApiResponse(201, receivedMsgTemp, "Message saved successfully"));
 });
 
 const deleteMessage = asyncHandler(async (req, res) => {

@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
-import { ChatEventEnum } from "../../../constants.js";
-import { User } from "../../../models/apps/auth/user.models.js";
-import { Chat } from "../../../models/apps/chat-app/chat.models.js";
-import { ChatMessage } from "../../../models/apps/chat-app/message.models.js";
-import { emitSocketEvent } from "../../../socket/index.js";
-import { ApiError } from "../../../utils/ApiError.js";
-import { ApiResponse } from "../../../utils/ApiResponse.js";
-import { asyncHandler } from "../../../utils/asyncHandler.js";
-import { removeLocalFile } from "../../../utils/helpers.js";
+import { ChatEventEnum } from "../constants.js";
+import { User } from "../models/user.models.js";
+import { Chat } from "../models/chat.models.js";
+import { ChatMessage } from "../models/message.models.js";
+import { emitSocketEvent } from "../socket/index.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { removeLocalFile } from "../utils/helpers.js";
 
 /**
  * @description Utility function which returns the pipeline stages to structure the chat schema with common lookups
@@ -462,6 +462,10 @@ const leaveGroupChat = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Group chat does not exist");
   }
 
+  if (groupChat.admin?.toString() == req.user._id?.toString()) {
+    throw new ApiError(404, "Admin cannot left the group");
+  }
+
   const existingParticipants = groupChat.participants;
 
   // check if the participant that is leaving the group, is part of the group
@@ -568,6 +572,10 @@ const removeParticipantFromGroupChat = asyncHandler(async (req, res) => {
 
   if (!groupChat) {
     throw new ApiError(404, "Group chat does not exist");
+  }
+
+  if (groupChat.admin?.toString() == req.user._id?.toString()) {
+    throw new ApiError(404, "Admin cannot be removed from the group");
   }
 
   // check if user who is deleting is a group admin

@@ -1,14 +1,15 @@
 // Importing necessary modules and interfaces
 import { AxiosResponse } from "axios";
-import { FreeAPISuccessResponseInterface } from "../interfaces/api";
+import { APISuccessResponseInterface } from "../interfaces/api";
 import { ChatListItemInterface } from "../interfaces/chat";
 import { UserInterface } from "../interfaces/user";
+import { refreshLoginToken } from "../api";
 
 // A utility function for handling API requests with loading, success, and error handling
 export const requestHandler = async (
-  api: () => Promise<AxiosResponse<FreeAPISuccessResponseInterface, any>>,
+  api: () => Promise<AxiosResponse<APISuccessResponseInterface, any>>,
   setLoading: ((loading: boolean) => void) | null,
-  onSuccess: (data: FreeAPISuccessResponseInterface) => void,
+  onSuccess: (data: APISuccessResponseInterface) => void,
   onError: (error: string) => void
 ) => {
   // Show loading state if setLoading function is provided
@@ -22,13 +23,29 @@ export const requestHandler = async (
       onSuccess(data);
     }
   } catch (error: any) {
-    // Handle error cases, including unauthorized and forbidden cases
-    console.log(error);
+    // If refresh token exists, try to refresh the token from cookie
     if ([401, 403].includes(error?.response?.data?.statusCode)) {
-      localStorage.clear(); // Clear local storage on authentication issues
-      if (isBrowser) window.location.href = "/login"; // Redirect to login page
+      try {
+        const res = await refreshLoginToken();
+        if (res.data.success) {
+          // Call the API again with the refreshed token
+          return await requestHandler(api, setLoading, onSuccess, onError);
+        } else {
+          // If refresh token is invalid, clear local storage and redirect to login
+          localStorage.clear(); // Clear local storage on authentication issues
+          if (isBrowser) window.location.href = "/login"; // Redirect to login page
+        }
+      } catch (err: any) {
+        console.log("Error refreshing token", err);
+        localStorage.clear(); // Clear local storage on authentication issues
+        if (isBrowser) window.location.href = "/login"; // Redirect to login page
+        onError(err?.response?.data?.message || "Something went wrong");
+        return;
+      }
+    } else {
+      console.log("Error in request handler", error);
+      onError(error?.response?.data?.message || "Something went wrong");
     }
-    onError(error?.response?.data?.message || "Something went wrong");
   } finally {
     // Hide loading state if setLoading function is provided
     setLoading && setLoading(false);

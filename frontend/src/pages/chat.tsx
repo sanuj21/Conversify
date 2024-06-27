@@ -173,14 +173,25 @@ const ChatPage = () => {
     // Emit a STOP_TYPING_EVENT to inform other users/participants that typing has stopped
     socket.emit(STOP_TYPING_EVENT, currentChat.current?._id);
 
+    const participantsID = currentChat.current?.participants.map(
+      (participant) => participant._id
+    );
+
+    const basicUserInfo = {
+      username: user?.username,
+      avatarURL: user?.avatar?.url,
+    };
+
     // Use the requestHandler to send the message and handle potential response or error
     await requestHandler(
       // Try to send the chat message with the given message and attached files
       async () =>
         await sendMessage(
-          currentChat.current?._id || "", // Chat ID or empty string if not available
+          currentChat.current?._id || "",
+          participantsID,
           message, // Actual text message
-          attachedFiles // Any attached files
+          attachedFiles, // Any attached files
+          basicUserInfo
         ),
       null,
       // On successful message sending, clear the message input and attached files, then update the UI
@@ -411,6 +422,8 @@ const ChatPage = () => {
     // updating on each `useEffect` call but on each socket call.
   }, [socket, chats]);
 
+  const imgFileTypes = ["png", "jpg", "jpeg", "gif", "webp"];
+
   return (
     <>
       <AddChatModal
@@ -423,7 +436,7 @@ const ChatPage = () => {
         }}
       />
 
-      <div className="w-full justify-between items-stretch h-screen flex flex-shrink-0">
+      <div className="w-full justify-between items-stretch h-screen flex flex-shrink-0 overflow-hidden">
         <div className="w-1/3 relative ring-white overflow-y-auto px-4">
           <div className="z-10 w-full sticky top-0 bg-dark py-4 flex justify-between items-center gap-4">
             <Input
@@ -435,7 +448,7 @@ const ChatPage = () => {
             />
             <button
               onClick={() => setOpenAddChat(true)}
-              className="rounded-xl border-none bg-primary text-white py-4 px-5 flex flex-shrink-0"
+              className="rounded-md border-none bg-primary text-white py-4 px-5 flex flex-shrink-0"
             >
               + Add chat
             </button>
@@ -573,6 +586,10 @@ const ChatPage = () => {
               {attachedFiles.length > 0 ? (
                 <div className="grid gap-4 grid-cols-5 p-4 justify-start max-w-fit">
                   {attachedFiles.map((file, i) => {
+                    console.log(file);
+                    const fileType =
+                      file.name.split(".")[file.name.split(".").length - 1];
+                    console.log(fileType);
                     return (
                       <div
                         key={i}
@@ -590,11 +607,20 @@ const ChatPage = () => {
                             <XCircleIcon className="h-6 w-6 text-white" />
                           </button>
                         </div>
-                        <img
-                          className="h-full rounded-xl w-full object-cover"
-                          src={URL.createObjectURL(file)}
-                          alt="attachment"
-                        />
+
+                        {imgFileTypes.includes(fileType) ? (
+                          <img
+                            className="h-full rounded-xl w-full object-cover"
+                            src={URL.createObjectURL(file)}
+                            alt="attachment"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex justify-center items-center bg-slate-100 text-center">
+                            <p className="text-black text-md p-2">
+                              {file.name}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -606,8 +632,6 @@ const ChatPage = () => {
                   id="attachments"
                   type="file"
                   value=""
-                  multiple
-                  max={5}
                   onChange={(e) => {
                     if (e.target.files) {
                       setAttachedFiles([...e.target.files]);

@@ -1,20 +1,15 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { UserLoginType, UserRolesEnum } from "../../../constants.js";
-import { User } from "../../../models/apps/auth/user.models.js";
-import { ApiError } from "../../../utils/ApiError.js";
-import { ApiResponse } from "../../../utils/ApiResponse.js";
-import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { UserLoginType, UserRolesEnum } from "../constants.js";
+import { User } from "../models/user.models.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   getLocalPath,
   getStaticFilePath,
   removeLocalFile,
-} from "../../../utils/helpers.js";
-import {
-  emailVerificationMailgenContent,
-  forgotPasswordMailgenContent,
-  sendEmail,
-} from "../../../utils/mail.js";
+} from "../utils/helpers.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -70,17 +65,6 @@ const registerUser = asyncHandler(async (req, res) => {
   user.emailVerificationExpiry = tokenExpiry;
   await user.save({ validateBeforeSave: false });
 
-  await sendEmail({
-    email: user?.email,
-    subject: "Please verify your email",
-    mailgenContent: emailVerificationMailgenContent(
-      user.username,
-      `${req.protocol}://${req.get(
-        "host"
-      )}/api/v1/users/verify-email/${unHashedToken}`
-    ),
-  });
-
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
   );
@@ -95,7 +79,7 @@ const registerUser = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { user: createdUser },
-        "Users registered successfully and verification email has been sent on your email."
+        "Users registered successfully."
       )
     );
 });
@@ -436,31 +420,31 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
 });
 
-const handleSocialLogin = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user?._id);
+// const handleSocialLogin = asyncHandler(async (req, res) => {
+//   const user = await User.findById(req.user?._id);
 
-  if (!user) {
-    throw new ApiError(404, "User does not exist");
-  }
+//   if (!user) {
+//     throw new ApiError(404, "User does not exist");
+//   }
 
-  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-    user._id
-  );
+//   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+//     user._id
+//   );
 
-  const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  };
+//   const options = {
+//     httpOnly: true,
+//     secure: process.env.NODE_ENV === "production",
+//   };
 
-  return res
-    .status(301)
-    .cookie("accessToken", accessToken, options) // set the access token in the cookie
-    .cookie("refreshToken", refreshToken, options) // set the refresh token in the cookie
-    .redirect(
-      // redirect user to the frontend with access and refresh token in case user is not using cookies
-      `${process.env.CLIENT_SSO_REDIRECT_URL}?accessToken=${accessToken}&refreshToken=${refreshToken}`
-    );
-});
+//   return res
+//     .status(301)
+//     .cookie("accessToken", accessToken, options) // set the access token in the cookie
+//     .cookie("refreshToken", refreshToken, options) // set the refresh token in the cookie
+//     .redirect(
+//       // redirect user to the frontend with access and refresh token in case user is not using cookies
+//       `${process.env.CLIENT_SSO_REDIRECT_URL}?accessToken=${accessToken}&refreshToken=${refreshToken}`
+//     );
+// });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
   // Check if user has uploaded an avatar
@@ -504,7 +488,7 @@ export {
   changeCurrentPassword,
   forgotPasswordRequest,
   getCurrentUser,
-  handleSocialLogin,
+  // handleSocialLogin,
   loginUser,
   logoutUser,
   refreshAccessToken,
