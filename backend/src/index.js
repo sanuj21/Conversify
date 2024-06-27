@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { httpServer } from "./app.js";
 import connectDB from "./db/index.js";
+import { shutdownProducer } from "./kafka/kafka.js";
 
 dotenv.config({
   path: "./.env",
