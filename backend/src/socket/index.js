@@ -6,7 +6,7 @@ import { AvailableChatEvents, ChatEventEnum } from "../constants.js";
 import { User } from "../models/user.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { io } from "../app.js";
-import { consumeMessages, produceMessages } from "../kafka/kafka.js";
+// import { consumeMessages, produceMessages } from "../kafka/kafka.js";
 
 // const redisPub = new Redis({
 //   host: process.env.REDIS_HOST,
@@ -65,7 +65,7 @@ const mountParticipantStoppedTypingEvent = (socket) => {
  * @param {Server<import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, any>} io
  */
 const initializeSocketIO = (io) => {
-  consumeMessages();
+  // consumeMessages();
 
   return io.on("connection", async (socket) => {
     try {
@@ -166,8 +166,8 @@ redisSub.on("pmessage", async (pattern, channel, message) => {
 
   io.in(roomId).emit(event, payload);
 
-  await produceMessages(message);
-  console.log("Message published to Kafka 🚀");
+  // await produceMessages(message);
+  // console.log("Message published to Kafka 🚀");
 });
 
 export { initializeSocketIO, emitSocketEvent, publishMessageRedis };

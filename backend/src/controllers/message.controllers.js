@@ -106,24 +106,6 @@ const sendMessage = asyncHandler(async (req, res) => {
     });
   }
 
-  const receivedMsgTemp = {
-    _id: new mongoose.Types.ObjectId(),
-    sender: {
-      _id: req.user._id,
-      username: senderUsername,
-      avatar: {
-        url: senderAvatarURL,
-      },
-    },
-    content: content || "",
-    participants: participants,
-    chat: chatId,
-    attachments: messageFiles,
-    updatedAt: new Date(),
-    createdAt: new Date(),
-  };
-
-  /*
   // Create a new message instance with appropriate metadata
   const message = await ChatMessage.create({
     sender: new mongoose.Types.ObjectId(req.user._id),
@@ -160,8 +142,6 @@ const sendMessage = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Internal server error");
   }
 
-  */
-
   // logic to emit socket event about the new message created to the other participants
   participants.forEach(async (participantObjectId) => {
     // here the chat is the raw instance of the chat in which participants is the array of object ids of users
@@ -180,13 +160,13 @@ const sendMessage = asyncHandler(async (req, res) => {
     await publishMessageRedis(
       `chat:${participantObjectId.toString()}`,
       ChatEventEnum.MESSAGE_RECEIVED_EVENT,
-      receivedMsgTemp
+      receivedMessage
     );
   });
 
   return res
     .status(201)
-    .json(new ApiResponse(201, receivedMsgTemp, "Message saved successfully"));
+    .json(new ApiResponse(201, receivedMessage, "Message saved successfully"));
 });
 
 const deleteMessage = asyncHandler(async (req, res) => {
