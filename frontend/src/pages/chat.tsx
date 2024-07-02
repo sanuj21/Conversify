@@ -1,4 +1,5 @@
 import {
+  ArrowUturnLeftIcon,
   PaperAirplaneIcon,
   PaperClipIcon,
   XCircleIcon,
@@ -42,7 +43,7 @@ const MESSAGE_DELETE_EVENT = "messageDeleted";
 
 const ChatPage = () => {
   // Import the 'useAuth' and 'useSocket' hooks from their respective contexts
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { socket } = useSocket();
 
   // Create a reference using 'useRef' to hold the currently selected chat.
@@ -57,8 +58,10 @@ const ChatPage = () => {
   const [isConnected, setIsConnected] = useState(false); // For tracking socket connection
 
   const [openAddChat, setOpenAddChat] = useState(false); // To control the 'Add Chat' modal
+  const [isLoading, setIsLoading] = useState(false);
   const [loadingChats, setLoadingChats] = useState(false); // To indicate loading of chats
   const [loadingMessages, setLoadingMessages] = useState(false); // To indicate loading of messages
+  const [chatOpen, setChatOpen] = useState(false); // To control the chat window
 
   const [chats, setChats] = useState<ChatListItemInterface[]>([]); // To store user's chats
   const [messages, setMessages] = useState<ChatMessageInterface[]>([]); // To store chat messages
@@ -167,6 +170,11 @@ const ChatPage = () => {
 
   // Function to send a chat message
   const sendChatMessage = async () => {
+    if (isLoading) {
+      alert("Still snding the prev msg.....");
+      return;
+    }
+
     // If no current chat ID exists or there's no socket connection, exit the function
     if (!currentChat.current?._id || !socket) return;
 
@@ -183,6 +191,7 @@ const ChatPage = () => {
     };
 
     // Use the requestHandler to send the message and handle potential response or error
+    setIsLoading(true);
     await requestHandler(
       // Try to send the chat message with the given message and attached files
       async () =>
@@ -205,6 +214,7 @@ const ChatPage = () => {
       // If there's an error during the message sending process, raise an alert
       alert
     );
+    setIsLoading(false);
   };
   const deleteChatMessage = async (message: ChatMessageInterface) => {
     //ONClick delete the message and reload the chat when deleteMessage socket gives any response in chat.tsx
@@ -356,6 +366,11 @@ const ChatPage = () => {
     ]);
   };
 
+  const handleLogout = async () => {
+    console.log("Logging out....");
+    logout();
+  };
+
   useEffect(() => {
     // Fetch the chat list from the server.
     getChats();
@@ -437,8 +452,12 @@ const ChatPage = () => {
       />
 
       <div className="w-full justify-between items-stretch h-screen flex flex-shrink-0 overflow-hidden">
-        <div className="w-1/3 relative ring-white overflow-y-auto px-4">
-          <div className="z-10 w-full sticky top-0 bg-dark py-4 flex justify-between items-center gap-4">
+        <div
+          className={`${
+            chatOpen ? "max-[800px]:hidden" : "max-[800px]:w-full"
+          } lg:w-1/3 relative ring-white overflow-y-auto px-2 lg:px-4`}
+        >
+          <div className="z-10 w-full sticky top-0 bg-dark py-2 flex justify-between items-center gap-4">
             <Input
               placeholder="Search user or group..."
               value={localSearchQuery}
@@ -448,7 +467,7 @@ const ChatPage = () => {
             />
             <button
               onClick={() => setOpenAddChat(true)}
-              className="rounded-md border-none bg-primary text-white py-4 px-5 flex flex-shrink-0"
+              className="rounded-md border-none bg-primary text-white py-[13px] px-5 flex flex-shrink-0"
             >
               + Add chat
             </button>
@@ -479,13 +498,9 @@ const ChatPage = () => {
                       unreadMessages.filter((n) => n.chat === chat._id).length
                     }
                     onClick={(chat) => {
-                      if (
-                        currentChat.current?._id &&
-                        currentChat.current?._id === chat._id
-                      )
-                        return;
                       LocalStorage.set("currentChat", chat);
                       currentChat.current = chat;
+                      setChatOpen(true);
                       setMessage("");
                       getMessages();
                     }}
@@ -504,11 +519,22 @@ const ChatPage = () => {
               })
           )}
         </div>
-        <div className="w-2/3 border-l-[0.1px] border-secondary">
+        <div
+          className={`${
+            !chatOpen ? "max-[800px]:hidden" : "max-[800px]:w-full"
+          } lg:w-2/3 border-l-[0.1px] border-secondary`}
+        >
           {currentChat.current && currentChat.current?._id ? (
             <>
-              <div className="p-4 sticky top-0 bg-dark z-20 flex justify-between items-center w-full border-b-[0.1px] border-secondary">
-                <div className="flex justify-start items-center w-max gap-3">
+              <div className="p-3 lg:p-4 sticky top-0 bg-dark z-20 flex justify-between items-center w-full border-b-[0.1px] border-secondary">
+                <div className="flex justify-start items-center w-max gap-2 lg:gap-3">
+                  <span
+                    className="inline-block lg:hidden"
+                    onClick={() => setChatOpen(false)}
+                  >
+                    <ArrowUturnLeftIcon className="w-6 h-6 mr-1" />
+                  </span>
+
                   {currentChat.current.isGroupChat ? (
                     <div className="w-12 relative h-12 flex-shrink-0 flex justify-start items-center flex-nowrap">
                       {currentChat.current.participants
@@ -551,11 +577,19 @@ const ChatPage = () => {
                       }
                     </small>
                   </div>
+                  <div className="absolute right-5 text-center">
+                    <button
+                      className="text-red-500 border-red-500 border-2 px-4 py-1"
+                      onClick={handleLogout}
+                    >
+                      Log out
+                    </button>
+                  </div>
                 </div>
               </div>
               <div
                 className={classNames(
-                  "p-8 overflow-y-auto flex flex-col-reverse gap-6 w-full",
+                  "p-2 lg:p-8 overflow-y-auto flex flex-col-reverse gap-6 w-full",
                   attachedFiles.length > 0
                     ? "h-[calc(100vh-336px)]"
                     : "h-[calc(100vh-176px)]"
@@ -586,10 +620,9 @@ const ChatPage = () => {
               {attachedFiles.length > 0 ? (
                 <div className="grid gap-4 grid-cols-5 p-4 justify-start max-w-fit">
                   {attachedFiles.map((file, i) => {
-                    console.log(file);
                     const fileType =
                       file.name.split(".")[file.name.split(".").length - 1];
-                    console.log(fileType);
+
                     return (
                       <div
                         key={i}
@@ -626,7 +659,7 @@ const ChatPage = () => {
                   })}
                 </div>
               ) : null}
-              <div className="sticky top-full p-4 flex justify-between items-center w-full gap-2 border-t-[0.1px] border-secondary">
+              <div className="sticky top-full p-2 lg:p-4 flex justify-between items-center w-full gap-2 border-t-[0.1px] border-secondary">
                 <input
                   hidden
                   id="attachments"

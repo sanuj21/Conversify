@@ -55,7 +55,7 @@ const ChatItem: React.FC<{
         onClick={() => onClick(chat)}
         onMouseLeave={() => setOpenOptions(false)}
         className={classNames(
-          "group p-4 my-2 flex justify-between gap-3 items-start cursor-pointer rounded-xl hover:bg-secondary",
+          "group p-4 my-2 flex justify-between gap-2 lg:gap-3 items-start cursor-pointer rounded-xl hover:bg-secondary",
           isActive ? "border-[1px] border-zinc-500 bg-secondary" : "",
           unreadCount > 0
             ? "border-[1px] border-success bg-success/20 font-bold"
@@ -69,7 +69,7 @@ const ChatItem: React.FC<{
           }}
           className="self-center p-1 relative"
         >
-          <EllipsisVerticalIcon className="h-6 group-hover:w-6 group-hover:opacity-100 w-0 opacity-0 transition-all ease-in-out duration-100 text-zinc-300" />
+          <EllipsisVerticalIcon className="h-6 lg:group-hover:w-6 lg:group-hover:opacity-100 lg:w-0 w-6 lg:opacity-0 transition-all ease-in-out duration-100 text-zinc-300" />
           <div
             className={classNames(
               "z-20 text-left absolute bottom-0 translate-y-full text-sm w-52 bg-dark rounded-2xl p-2 shadow-md border-[1px] border-secondary",

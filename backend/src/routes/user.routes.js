@@ -5,7 +5,7 @@ import {
   changeCurrentPassword,
   forgotPasswordRequest,
   getCurrentUser,
-  // handleSocialLogin,
+  handleSocialLogin,
   loginUser,
   logoutUser,
   refreshAccessToken,
@@ -30,10 +30,13 @@ import {
 import { validate } from "../validators/validate.js";
 import { upload } from "../middlewares/multer.middlewares.js";
 import { mongoIdPathVariableValidator } from "../validators/mongodb.validators.js";
+import passport from "passport";
+import "../passport/index.js"; // import the passport config
 
 const router = Router();
 
 // Unsecured route
+
 router.route("/register").post(userRegisterValidator(), validate, registerUser);
 router.route("/login").post(userLoginValidator(), validate, loginUser);
 router.route("/refresh-token").post(refreshAccessToken);
@@ -52,6 +55,7 @@ router
 
 // Secured routes
 router.route("/logout").post(verifyJWT, logoutUser);
+
 router
   .route("/avatar")
   .patch(verifyJWT, upload.single("avatar"), updateUserAvatar);
@@ -79,7 +83,7 @@ router
   );
 
 // SSO routes
-/*
+
 router.route("/google").get(
   passport.authenticate("google", {
     scope: ["profile", "email"],
@@ -89,23 +93,8 @@ router.route("/google").get(
   }
 );
 
-router.route("/github").get(
-  passport.authenticate("github", {
-    scope: ["profile", "email"],
-  }),
-  (req, res) => {
-    res.send("redirecting to github...");
-  }
-);
-
 router
   .route("/google/callback")
   .get(passport.authenticate("google"), handleSocialLogin);
-
-router
-  .route("/github/callback")
-  .get(passport.authenticate("github"), handleSocialLogin);
-
-*/
 
 export default router;

@@ -45,6 +45,10 @@ const logoutUser = () => {
   return apiClient.post("/users/logout");
 };
 
+const getUser = () => {
+  return apiClient.get("/users/current-user");
+};
+
 const getAvailableUsers = () => {
   return apiClient.get("/chat-app/chats/users");
 };
@@ -140,4 +144,5 @@ export {
   updateGroupName,
   deleteMessage,
   refreshLoginToken,
+  getUser,
 };

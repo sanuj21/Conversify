@@ -10,6 +10,7 @@ import {
   getStaticFilePath,
   removeLocalFile,
 } from "../utils/helpers.js";
+import { access } from "fs";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -267,6 +268,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     // check if incoming refresh token is same as the refresh token attached in the user document
     // This shows that the refresh token is used or not
     // Once it is used, we are replacing it with new refresh token below
+    console.log(user);
     if (incomingRefreshToken !== user?.refreshToken) {
       // If token is valid but is used already
       throw new ApiError(401, "Refresh token is expired or used");
@@ -415,36 +417,48 @@ const assignRole = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+  const accessToken = req.cookies.accessToken;
+  let user = {
+    ...req.user,
+    accessToken: accessToken,
+  };
+
+  const data = {
+    user: user._doc,
+    accessToken,
+  };
+
   return res
     .status(200)
-    .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
+    .json(new ApiResponse(200, data, "Current user fetched successfully"));
 });
 
-// const handleSocialLogin = asyncHandler(async (req, res) => {
-//   const user = await User.findById(req.user?._id);
+const handleSocialLogin = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user?._id);
+  if (!user) {
+    throw new ApiError(404, "User does not exist");
+  }
 
-//   if (!user) {
-//     throw new ApiError(404, "User does not exist");
-//   }
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+    user._id
+  );
 
-//   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-//     user._id
-//   );
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  };
 
-//   const options = {
-//     httpOnly: true,
-//     secure: process.env.NODE_ENV === "production",
-//   };
+  console.log(process.env.CLIENT_SSO_REDIRECT_URL);
 
-//   return res
-//     .status(301)
-//     .cookie("accessToken", accessToken, options) // set the access token in the cookie
-//     .cookie("refreshToken", refreshToken, options) // set the refresh token in the cookie
-//     .redirect(
-//       // redirect user to the frontend with access and refresh token in case user is not using cookies
-//       `${process.env.CLIENT_SSO_REDIRECT_URL}?accessToken=${accessToken}&refreshToken=${refreshToken}`
-//     );
-// });
+  return res
+    .status(301)
+    .cookie("accessToken", accessToken, options) // set the access token in the cookie
+    .cookie("refreshToken", refreshToken, options) // set the refresh token in the cookie
+    .redirect(
+      // redirect user to the frontend with access and refresh token in case user is not using cookies
+      `${process.env.CLIENT_SSO_REDIRECT_URL}?redirect=google`
+    );
+});
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
   // Check if user has uploaded an avatar
@@ -488,7 +502,7 @@ export {
   changeCurrentPassword,
   forgotPasswordRequest,
   getCurrentUser,
-  // handleSocialLogin,
+  handleSocialLogin,
   loginUser,
   logoutUser,
   refreshAccessToken,
