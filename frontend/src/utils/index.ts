@@ -11,7 +11,7 @@ export const requestHandler = async (
   setLoading: ((loading: boolean) => void) | null,
   onSuccess: (data: APISuccessResponseInterface) => void,
   onError: (error: string) => void
-) => {
+): Promise<void> => {
   // Show loading state if setLoading function is provided
   setLoading && setLoading(true);
   try {

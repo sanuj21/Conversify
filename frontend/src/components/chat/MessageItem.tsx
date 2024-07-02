@@ -1,6 +1,5 @@
 import {
   ArrowDownTrayIcon,
-  EllipsisVerticalIcon,
   MagnifyingGlassPlusIcon,
   PaperClipIcon,
   TrashIcon,
