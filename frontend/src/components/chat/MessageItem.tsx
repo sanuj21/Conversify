@@ -38,7 +38,7 @@ const MessageItem: React.FC<{
       ) : null}
       <div
         className={classNames(
-          "flex justify-start items-end gap-3 max-w-lg min-w-",
+          "flex justify-start items-end gap-1 lg:gap-3 max-w-lg min-w-",
           isOwnMessage ? "ml-auto" : ""
         )}
       >

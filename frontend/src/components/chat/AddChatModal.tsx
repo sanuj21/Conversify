@@ -140,7 +140,7 @@ const AddChatModal: React.FC<{
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 overflow-y-visible">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <div className="flex lg:min-h-full lg:items-baseline mt-32 justify-center p-4 text-center sm:items-center sm:p-0">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"

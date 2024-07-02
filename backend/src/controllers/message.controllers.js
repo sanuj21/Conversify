@@ -99,8 +99,15 @@ const sendMessage = asyncHandler(async (req, res) => {
 
   if (req.files && req.files.attachments?.length > 0) {
     req.files.attachments?.map((attachment) => {
+      let urlM = getStaticFilePath(req, attachment.filename);
+      // fixing for deployement
+      // while getting the path, change the http to https
+      if (urlM.includes("http://")) {
+        urlM = urlM.replace("http://", "https://");
+      }
+
       messageFiles.push({
-        url: getStaticFilePath(req, attachment.filename),
+        url: urlM,
         localPath: getLocalPath(attachment.filename),
       });
     });

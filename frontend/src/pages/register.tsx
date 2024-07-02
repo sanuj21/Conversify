@@ -33,9 +33,9 @@ const Register = () => {
 
   return (
     // Register form UI
-    <div className="flex justify-center items-center flex-col h-screen w-screen">
+    <div className="flex justify-center items-center flex-col h-screen w-screen pt-6">
       <Logo />
-      <div className="max-w-5xl w-1/3 p-8 flex justify-center items-center gap-5 flex-col bg-dark shadow-md rounded-xl my-16 border-secondary border-[1px]">
+      <div className="max-w-5xl w-full lg:w-1/3 p-8 flex justify-center items-center gap-5 flex-col bg-dark lg:shadow-md rounded-xl my-16 border-secondary lg:border-[1px]">
         <h1 className="inline-flex items-center text-2xl mb-4 flex-col">
           {/* Lock icon */}
           <LockClosedIcon className="h-8 w-8 mb-2" /> Register
