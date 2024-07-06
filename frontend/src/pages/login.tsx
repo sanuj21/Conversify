@@ -33,7 +33,9 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
-    window.location.href = "http://localhost:8080/api/v1/users/google";
+    window.location.href = `${
+      import.meta.env.VITE_SOCKET_URI
+    }/api/v1/users/google`;
   };
 
   return (
