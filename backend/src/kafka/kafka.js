@@ -4,15 +4,15 @@ import { ChatMessage } from "../models/message.models.js";
 import { Chat } from "../models/chat.models.js";
 
 const kafka = new Kafka({
-  brokers: ["kafka-147caae5-anujs-first.j.aivencloud.com:18063"],
-  ssl: {
-    ca: fs.readFileSync("./ca.pem", "utf-8"),
-  },
-  sasl: {
-    mechanism: "plain",
-    username: "avnadmin",
-    password: "AVNS_wwzqTGawRTIN7xrEcq0",
-  },
+  brokers: ["localhost:9092"],
+  // ssl: {
+  //   ca: fs.readFileSync("./ca.pem", "utf-8"),
+  // },
+  // sasl: {
+  //   mechanism: "plain",
+  //   username: "avnadmin",
+  //   password: "AVNS_wwzqTGawRTIN7xrEcq0",
+  // },
 });
 
 let producer = null;

@@ -7,17 +7,20 @@ import { User } from "../models/user.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { io } from "../app.js";
 import { consumeMessages, produceMessages } from "../kafka/kafka.js";
+import dotenv from "dotenv";
 
-// const redisPub = new Redis({
-//   host: process.env.REDIS_HOST,
-//   port: "18051",
-//   username: "default",
-//   password: "AVNS_x5ybxU2-lZav0lMJJk2",
-// });
+dotenv.config({
+  path: "./.env",
+});
+console.log(
+  "ENV_Redis_URI",
+  process.env.AIVEN_REDIS_URI,
+  "MongoURL",
+  process.env.CORS_ORIGIN
+);
+const redisPub = new Redis(process.env.AIVEN_REDIS_URI);
 
-const redisPub = new Redis(process.env.REDIS_URI);
-
-const redisSub = new Redis(process.env.REDIS_URI);
+const redisSub = new Redis(process.env.AIVEN_REDIS_URI);
 
 // const redisSub = new Redis({
 //   host: process.env.REDIS_HOST,
