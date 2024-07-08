@@ -1,8 +1,8 @@
-# Hey!There (A Higly Scalable Chat Web App)
+# StreamLine (A Higly Scalable Chat Web App)
 
 ## Overview
 
-HeyThere is a scalable chat web application developed using modern technologies to ensure high performance, real-time messaging, and scalability. The application supports features such as real-time notifications, group chat, one-to-one chat, and attachment sharing.
+StreamLine is a scalable chat web application developed using modern technologies to ensure high performance, real-time messaging, and scalability. The application supports features such as real-time notifications, group chat, one-to-one chat, and attachment sharing.
 
 ## Tech Stack
 
