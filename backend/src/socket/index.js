@@ -6,12 +6,8 @@ import { AvailableChatEvents, ChatEventEnum } from "../constants.js";
 import { User } from "../models/user.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { io } from "../app.js";
-<<<<<<< HEAD
-import { consumeMessages, produceMessages } from "../kafka/kafka.js";
-=======
 import dotenv from "dotenv";
-// import { consumeMessages, produceMessages } from "../kafka/kafka.js";
->>>>>>> 9cbb0dd (Fix : Minor fixes including deployement issues and UI errors)
+import { consumeMessages, produceMessages } from "../kafka/kafka.js";
 
 dotenv.config({
   path: "./.env",
