@@ -82,8 +82,6 @@ router
     assignRole
   );
 
-// SSO routes
-
 router.route("/google").get(
   passport.authenticate("google", {
     scope: ["profile", "email"],
