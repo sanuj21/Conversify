@@ -91,8 +91,10 @@ router.route("/google").get(
   }
 );
 
+// this route is stored in the google console as the callback url
 router
   .route("/google/callback")
   .get(passport.authenticate("google"), handleSocialLogin);
+// this time the authenticate function will change the token received from google with profile information
 
 export default router;
