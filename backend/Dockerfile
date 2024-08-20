@@ -5,7 +5,6 @@ WORKDIR /usr/src/chatApp
 # Copy package.json and package-lock.json
 COPY package.json yarn.lock ./
 
-COPY prepare.js ./
 
 # Install dependencies
 RUN yarn install --pure-lockfile

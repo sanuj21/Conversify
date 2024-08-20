@@ -137,7 +137,9 @@ redisPubSub.psubscribe("chat:*", async (pattern, channel, message) => {
   const roomId = channel.split(":")[1];
   console.log("New Message received from Redis 📡. roomId: ", roomId);
 
-  io.in(roomId).emit(event, payload);
+  payload.participants.forEach(async (participantObjectId) => {
+    io.in(participantObjectId.toString()).emit(event, payload);
+  });
 
   await kafkaService.produceMessages(message);
   console.log("Message published to Kafka 🚀");
