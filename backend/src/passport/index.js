@@ -4,6 +4,14 @@ import { User } from "../models/user.models.js";
 import { UserLoginType, UserRolesEnum } from "../constants.js";
 import { ApiError } from "../utils/ApiError.js";
 
+passport.serializeUser(function (user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function (user, done) {
+  done(null, user);
+});
+
 try {
   passport.use(
     new GoogleStrategy(

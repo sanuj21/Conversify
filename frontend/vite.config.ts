@@ -1,18 +1,20 @@
 import { defineConfig } from "vite";
 import dns from "dns";
 import react from "@vitejs/plugin-react";
+import dotenv from "dotenv";
 
 dns.setDefaultResultOrder("verbatim");
 
-// https://vitejs.dev/config/
+// Load environment variables from the .env file
+dotenv.config();
+
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3000,
+    port: Number(process.env.PORT),
     watch: {
       usePolling: true,
     },
-    host: true, // Here
+    host: true,
   },
-  
 });

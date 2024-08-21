@@ -311,6 +311,9 @@ const ChatPage = () => {
    * Handles the event when a new message is received.
    */
   const onMessageReceived = (message: ChatMessageInterface) => {
+    // If its the same user
+    if (message.sender._id == user?._id) return;
+
     // Check if the received message belongs to the currently active chat
     if (message?.chat !== currentChat.current?._id) {
       // If not, update the list of unread messages
