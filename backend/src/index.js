@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
 import { httpServer } from "./app.js";
 import connectDB from "./db/index.js";
-import { shutdownProducer } from "./kafka/kafka.js";
+import kafkaService from "./kafka/index.js";
+import redisPubSub from "./redis/index.js";
 
 dotenv.config({
   path: "./.env",
@@ -26,7 +27,9 @@ const startServer = () => {
 
 // Shutting down Kafka producer
 process.on("SIGINT", async () => {
-  await shutdownProducer();
+  console.log("Shutting down Kafka...");
+  await kafkaService.shutdown();
+
   process.exit(0);
 });
 

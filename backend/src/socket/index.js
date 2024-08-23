@@ -6,28 +6,13 @@ import { AvailableChatEvents, ChatEventEnum } from "../constants.js";
 import { User } from "../models/user.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { io } from "../app.js";
-import { consumeMessages, produceMessages } from "../kafka/kafka.js";
 import dotenv from "dotenv";
+import kafkaService from "../kafka/index.js";
+import redisPubSub from "../redis/index.js";
 
 dotenv.config({
   path: "./.env",
 });
-console.log(
-  "ENV_Redis_URI",
-  process.env.AIVEN_REDIS_URI,
-  "MongoURL",
-  process.env.CORS_ORIGIN
-);
-const redisPub = new Redis(process.env.AIVEN_REDIS_URI);
-
-const redisSub = new Redis(process.env.AIVEN_REDIS_URI);
-
-// const redisSub = new Redis({
-//   host: process.env.REDIS_HOST,
-//   port: "18051",
-//   username: "default",
-//   password: "AVNS_x5ybxU2-lZav0lMJJk2",
-// });
 
 /**
  * @description This function is responsible to allow user to join the chat represented by chatId (chatId). event happens when user switches between the chats
@@ -68,7 +53,7 @@ const mountParticipantStoppedTypingEvent = (socket) => {
  * @param {Server<import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, any>} io
  */
 const initializeSocketIO = (io) => {
-  consumeMessages();
+  kafkaService.consumeMessages();
 
   return io.on("connection", async (socket) => {
     try {
@@ -143,33 +128,20 @@ const emitSocketEvent = async (req, roomId, event, payload) => {
 // Function to publish the message event to Redis
 const publishMessageRedis = async (channel, event, payload) => {
   if (channel.split(":")[0] != "chat") return;
-  await redisPub.publish(channel, JSON.stringify({ event, payload }));
-  const redisListKey = `${channel}:messages`;
-  // await redisPub.lpush(redisListKey, JSON.stringify(receivedMessage));
-  // await redisPub.ltrim(redisListKey, 0, 99);
+  redisPubSub.publish(channel, JSON.stringify({ event, payload }));
 };
 
-redisSub.psubscribe("chat:*", (err, count) => {
-  if (err) {
-    console.error("Failed to subscribe: %s", err.message);
-  } else {
-    console.log(
-      `Subscribed successfully! This client is currently subscribed to ${count} channels.`
-    );
-  }
-});
-
-// subscribing to the message event redis
-redisSub.on("pmessage", async (pattern, channel, message) => {
+redisPubSub.psubscribe("chat:*", async (pattern, channel, message) => {
   if (pattern != "chat:*") return;
-
   const { payload, event } = JSON.parse(message);
   const roomId = channel.split(":")[1];
   console.log("New Message received from Redis 📡. roomId: ", roomId);
 
-  io.in(roomId).emit(event, payload);
+  payload.participants.forEach(async (participantObjectId) => {
+    io.in(participantObjectId.toString()).emit(event, payload);
+  });
 
-  await produceMessages(message);
+  await kafkaService.produceMessages(message);
   console.log("Message published to Kafka 🚀");
 });
 

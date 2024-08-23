@@ -11,7 +11,7 @@ export const requestHandler = async (
   setLoading: ((loading: boolean) => void) | null,
   onSuccess: (data: APISuccessResponseInterface) => void,
   onError: (error: string) => void
-) => {
+): Promise<void> => {
   // Show loading state if setLoading function is provided
   setLoading && setLoading(true);
   try {
@@ -24,9 +24,13 @@ export const requestHandler = async (
     }
   } catch (error: any) {
     // If refresh token exists, try to refresh the token from cookie
-    if ([401, 403].includes(error?.response?.data?.statusCode)) {
+    if (
+      [401, 403].includes(error?.response?.data?.statusCode) &&
+      localStorage.getItem("user")
+    ) {
       try {
         const res = await refreshLoginToken();
+        console.log("Refreshing Token....");
         if (res.data.success) {
           // Call the API again with the refreshed token
           return await requestHandler(api, setLoading, onSuccess, onError);

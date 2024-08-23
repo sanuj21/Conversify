@@ -99,8 +99,15 @@ const sendMessage = asyncHandler(async (req, res) => {
 
   if (req.files && req.files.attachments?.length > 0) {
     req.files.attachments?.map((attachment) => {
+      let urlM = getStaticFilePath(req, attachment.filename);
+      // fixing for deployement
+      // while getting the path, change the http to https
+      if (urlM.includes("http://")) {
+        urlM = urlM.replace("http://", "https://");
+      }
+
       messageFiles.push({
-        url: getStaticFilePath(req, attachment.filename),
+        url: urlM,
         localPath: getLocalPath(attachment.filename),
       });
     });
@@ -162,27 +169,12 @@ const sendMessage = asyncHandler(async (req, res) => {
 
   */
 
-  // logic to emit socket event about the new message created to the other participants
-  participants.forEach(async (participantObjectId) => {
-    // here the chat is the raw instance of the chat in which participants is the array of object ids of users
-    // avoid emitting event to the user who is sending the message
-    if (participantObjectId.toString() === req.user._id.toString()) return;
-
-    // emit the receive message event to the other participants with received message as the payload
-    // await emitSocketEvent(
-    //   req,
-    //   participantObjectId.toString(),
-    //   ChatEventEnum.MESSAGE_RECEIVED_EVENT,
-    //   receivedMessage
-    // );
-
-    //  Publish the message event to Redis
-    await publishMessageRedis(
-      `chat:${participantObjectId.toString()}`,
-      ChatEventEnum.MESSAGE_RECEIVED_EVENT,
-      receivedMsgTemp
-    );
-  });
+  //  Publish the message event to Redis
+  await publishMessageRedis(
+    `chat:${chatId.toString()}`,
+    ChatEventEnum.MESSAGE_RECEIVED_EVENT,
+    receivedMsgTemp
+  );
 
   return res
     .status(201)

@@ -1,4 +1,8 @@
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
+const __dirname = path.dirname(__filename); // get the name of the directory
 
 /**
  *
@@ -16,7 +20,7 @@ export const getStaticFilePath = (req, fileName) => {
  * @description returns the file's local path in the file system to assist future removal
  */
 export const getLocalPath = (fileName) => {
-  return `public/images/${fileName}`;
+  return path.resolve(__dirname, `../../public/images/${fileName}`);
 };
 
 /**

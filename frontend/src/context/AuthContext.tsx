@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { loginUser, logoutUser, registerUser } from "../api";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getUser, loginUser, logoutUser, registerUser } from "../api";
 import Loader from "../components/Loader";
 import { UserInterface } from "../interfaces/user";
 import { LocalStorage, requestHandler } from "../utils";
@@ -34,6 +34,30 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<UserInterface | null>(null);
   const [token, setToken] = useState<string | null>(null);
+
+  const query = useLocation();
+  const reload = query?.search.split("?")[1]?.split("=")[1];
+
+  useEffect(() => {
+    const checkTokensOnOauth = async () => {
+      await requestHandler(
+        async () => await getUser(),
+        setIsLoading,
+        (res) => {
+          const { data } = res;
+          setUser(data.user);
+          setToken(data.accessToken);
+          LocalStorage.set("user", data.user);
+          LocalStorage.set("token", data.accessToken);
+          navigate("/chat"); // Redirect to the chat page after successful login
+        },
+        alert // Display error alerts on request failure
+      );
+    };
+    if (reload == "google") {
+      checkTokensOnOauth();
+    }
+  }, [reload]);
 
   const navigate = useNavigate();
 
