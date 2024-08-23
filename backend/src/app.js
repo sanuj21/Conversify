@@ -5,7 +5,7 @@ import { rateLimit } from "express-rate-limit";
 import { createServer } from "http";
 import requestIp from "request-ip";
 import { Server } from "socket.io";
-import session from "express-session";
+// import session from "express-session";
 import { initializeSocketIO } from "./socket/index.js";
 import { ApiError } from "./utils/ApiError.js";
 import passport from "passport";
@@ -33,15 +33,15 @@ app.use(
 );
 
 // required for passport
-app.use(
-  session({
-    secret: process.env.EXPRESS_SESSION_SECRET,
-    resave: true,
-    saveUninitialized: true,
-  })
-); // session secret
+// app.use(
+//   session({
+//     secret: process.env.EXPRESS_SESSION_SECRET,
+//     resave: true,
+//     saveUninitialized: true,
+//   })
+// ); // session secret
 app.use(passport.initialize());
-app.use(passport.session()); // persistent login sessions
+// app.use(passport.session()); // persistent login sessions
 
 app.use(requestIp.mw());
 

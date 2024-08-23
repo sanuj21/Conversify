@@ -4,15 +4,28 @@ import { User } from "../models/user.models.js";
 import { UserLoginType, UserRolesEnum } from "../constants.js";
 import { ApiError } from "../utils/ApiError.js";
 
-passport.serializeUser(function (user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function (user, done) {
-  done(null, user);
-});
-
 try {
+  // passport.serializeUser((user, next) => {
+  //   next(null, user._id);
+  // });
+
+  // passport.deserializeUser(async (id, next) => {
+  //   try {
+  //     const user = await User.findById(id);
+  //     if (user)
+  //       next(null, user); // return user of exist
+  //     else next(new ApiError(404, "User does not exist"), null); // throw an error if user does not exist
+  //   } catch (error) {
+  //     next(
+  //       new ApiError(
+  //         500,
+  //         "Something went wrong while deserializing the user. Error: " + error
+  //       ),
+  //       null
+  //     );
+  //   }
+  // });
+
   passport.use(
     new GoogleStrategy(
       {
@@ -20,7 +33,6 @@ try {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: process.env.GOOGLE_CALLBACK_URL,
       },
-      // This function will be called when the user is authenticated with google and the user's profile will be passed to this function
       async (_, __, profile, next) => {
         // Check if the user with email already exist
         const user = await User.findOne({ email: profile._json.email });

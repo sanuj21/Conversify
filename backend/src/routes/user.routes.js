@@ -85,6 +85,7 @@ router
 router.route("/google").get(
   passport.authenticate("google", {
     scope: ["profile", "email"],
+    session: false,
   }),
   (req, res) => {
     res.send("redirecting to google...");
@@ -94,7 +95,7 @@ router.route("/google").get(
 // this route is stored in the google console as the callback url
 router
   .route("/google/callback")
-  .get(passport.authenticate("google"), handleSocialLogin);
+  .get(passport.authenticate("google", { session: false }), handleSocialLogin);
 // this time the authenticate function will change the token received from google with profile information
 
 export default router;
