@@ -34,7 +34,6 @@ class KafkaService {
       messages: [{ key: `message-${Date.now()}`, value: message }],
     });
   }
-
   async consumeMessages() {
     console.log("Started consuming messages from Kafka...");
     this.consumer = this.kafka.consumer({ groupId: "default" });
@@ -42,46 +41,44 @@ class KafkaService {
     await this.consumer.subscribe({ topic: "MESSAGES", fromBeginning: true });
 
     await this.consumer.run({
-      eachMessage: async ({ message, pause }) => {
+      eachBatch: async ({ batch, pause }) => {
         try {
-          // Store the message in the database
-
-          const {
-            _id,
-            sender,
-            content,
-            chat,
-            attachments,
-            updatedAt,
-            createdAt,
-          } = JSON.parse(message.value.toString()).payload;
-
-          if ((!_id, !sender || !content || !chat || !attachments)) {
-            throw new Error("Invalid message");
-          }
-
-          // Create a new chatmessage instance with appropriate metadata
-          const chatMessage = await ChatMessage.create({
-            _id,
-            sender: sender._id,
-            content,
-            chat,
-            attachments,
-            updatedAt,
-            createdAt,
-          });
-
-          await Chat.findByIdAndUpdate(
-            chat,
-            {
-              $set: {
-                lastMessage: chatMessage._id,
-              },
-            },
-            { new: true }
+          const messages = batch.messages.map(
+            ({ value }) => JSON.parse(value.toString()).payload
           );
+
+          // Validate all messages in the batch
+          const validMessages = messages.filter(
+            ({ _id, sender, content, chat, attachments }) =>
+              _id && sender && content && chat && attachments
+          );
+
+          if (validMessages.length > 0) {
+            // Batch insert into the database
+            await ChatMessage.insertMany(
+              validMessages.map((msg) => ({
+                _id: msg._id,
+                sender: msg.sender._id,
+                content: msg.content,
+                chat: msg.chat,
+                attachments: msg.attachments,
+                updatedAt: msg.updatedAt,
+                createdAt: msg.createdAt,
+              }))
+            );
+
+            // Update the last message for each chat in the batch
+            const chatUpdates = validMessages.map((msg) =>
+              Chat.findByIdAndUpdate(
+                msg.chat,
+                { $set: { lastMessage: msg._id } },
+                { new: true }
+              )
+            );
+            await Promise.all(chatUpdates);
+          }
         } catch (error) {
-          console.error("Error consuming message", error);
+          console.error("Error consuming batch", error);
 
           // Pause the consumer to prevent more messages from being consumed
           await pause();
